@@ -220,6 +220,8 @@ void pre_Search_Node(CSTree T,char kval[],CSTree *p)
 
 }
 
+
+
 /*************树的结点插入************/
 int insert_CSTree(CSTree *T,char fa[],char ch[])
 {
@@ -350,7 +352,6 @@ void dispTree(CSTree T,int level)
 
 void AllTreePath(CSTree T,LinkStack *S)
 {
-	LinkStackType e[100];
 	while(T)
 	{
 		LinkStackPush(S,T->Tdata );

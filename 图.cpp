@@ -418,7 +418,7 @@ void DFS_Loop(MGraph *G,int v,int visited[])
 	int di,vi,j;
 	for(di=0,vi=0,j=0;j<G->vexNum;j++)
 	{
-		if(G->arcs[v][j])
+		if(G->arcs[v][j]!=0&&G->arcs[v][j]!=MAXCOST)
 		{
 			di++;
 			if(visited[j])

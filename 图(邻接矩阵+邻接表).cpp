@@ -36,7 +36,8 @@ typedef struct ArcNode
 typedef struct VertexNode
 {
 	VertexType vertex;//结点内容
-	int count;//入度
+	int in;//入度
+	int out;
 	ArcNode *firstArc;//头结点
 }VertexNode;
 
@@ -172,11 +173,10 @@ void create_Graph(MGraph *MG,ALGraph *ALG)
 	MG->arcNum=ALG->arcNum=arcnum;
 	for(i=0;i<vexnum;i++)
 	{
-		printf("请输入结点信息及入度:");
-		scanf("%c%d",&x,&count);
+		printf("请输入结点信息:");
+		scanf("%c",&x);
 		getchar();
 		ALG->adjlist[i].vertex=x;
-		ALG->adjlist[i].count=count;
 		ALG->adjlist[i].firstArc=NULL;
 		MG->vexs[i]=x;
 	}
@@ -210,6 +210,46 @@ void create_Graph(MGraph *MG,ALGraph *ALG)
 
 }
 
+void find_in_degree(ALGraph *G)
+{
+	int i,k;
+	ArcNode *p=NULL;
+	for(k=0;k<G->vexNum;k++)
+	{
+		G->adjlist[k].in=0;
+		for(i=0;i<G->vexNum;i++)
+		{
+			p=G->adjlist[i].firstArc;
+			while(p)
+			{
+				if(p->adjvex==k)
+					(G->adjlist[k].in)++;
+				p=p->nextArc;
+			}
+
+		}
+
+	}
+
+}
+/****************求出度************/
+void find_out_degree(ALGraph *G)
+{
+	int i,k;
+	ArcNode *p=NULL;
+	for(k=0;k<G->vexNum;k++)
+	{
+		G->adjlist[k].out=0;
+			p=G->adjlist[k].firstArc;
+			while(p!=NULL)
+			{
+				G->adjlist[k].out++;
+				p=p->nextArc;
+			}
+
+	}
+
+}
 void print_MG(MGraph MG)
 {
  int i,j;
@@ -627,7 +667,7 @@ void menu()
 	printf("                              7.简单路径                                 \n");
 	printf("                              8.最短路径                                 \n");
 	printf("                              9.求最小生成树                            \n");
-	printf("                              1.退出界面                                 \n");
+	printf("                              0.退出界面                                 \n");
 	while(1)
 	{
 		printf("请输入你的选择:");
@@ -638,6 +678,8 @@ void menu()
 		case 0:exit(0);
 			break;
 		case 1:create_Graph(&MG,&ALG);
+			find_in_degree(&ALG);
+			find_out_degree(&ALG);
 			printf("创建完成!\n");
 			break;
 		case 2:print_MG(MG);

@@ -12,7 +12,15 @@ using System.IO;
 using System.Drawing.Printing;
 using System.Text.RegularExpressions;
 using System.Xml;
-//using Microsoft.Office.Interop.Word;
+using System.Security.Cryptography;
+using System.Web.ApplicationServices;
+using System.Web;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Speech.Synthesis;
+using SpeechLib;
+using richTextBoxTableClass;
+using System.IniFiles;
 
 
 
@@ -29,6 +37,13 @@ namespace 文档编辑器01
         int count = 0;
         String title = "Untitled";//保存打开文件的标题
         Encoding ec = Encoding.UTF8;//设置文本的格式
+        public enum Language
+        {
+            auto = 0,
+            zh = 1,
+            en = 2,
+            cht = 3
+        }
         public Form1()
         {
             InitializeComponent();
@@ -319,11 +334,18 @@ namespace 文档编辑器01
                 return;
             OpenFileDialog saveFileDialog1 = new OpenFileDialog();
             openFileDialog1.Filter = "文本文档(*.txt)|*.txt|所有文件(*.*)|*.*|docx文档(*.docx)|*.docx|RTF文件|*.rtf";
-           /* openFileDialog1.FilterIndex = 1;
+            openFileDialog1.FilterIndex = 1;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                s_FileName = openFileDialog1.FileName;
-                richTextBox1.LoadFile(openFileDialog1.FileName,RichTextBoxStreamType.PlainText);
+                try
+                {
+                    s_FileName = openFileDialog1.FileName;
+                    richTextBox1.LoadFile(openFileDialog1.FileName, RichTextBoxStreamType.PlainText);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Oh，您的打开不成功！");
+                }
             }
             
           /*  openFileDialog1.Filter = "文本文件|*.txt;*.html;*.docx;*.doc;*.rtf|所有文件|*.*"; //文件打开的过滤器
@@ -349,7 +371,7 @@ namespace 文档编辑器01
             }
             */
            /*openFileDialog1.Filter = "文本文件(*.txt)|*.txt|RTF文件|*.rtf|所有文件(*.*)|*.*";*/
-            openFileDialog1.FilterIndex = 1;
+          /*  openFileDialog1.FilterIndex = 1;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 s_FileName = openFileDialog1.FileName;
@@ -372,7 +394,7 @@ namespace 文档编辑器01
                     MessageBox.Show("Oh，您的打开不成功！");
                 }
             }
-
+            */
         }
 
         private void 保存SToolStripMenuItem_Click(object sender, EventArgs e)
@@ -771,51 +793,62 @@ namespace 文档编辑器01
 
         private void 选项OToolStripMenuItem_Click(object sender, EventArgs e)
         {
-          /*  Document document = new Document();
+            richTextBoxTableDlg dlg = new richTextBoxTableDlg();
+            dlg.richTextBox = richTextBox1;
 
-            //添加section到文档
-            Section section = document.AddSection();
-            //添加段落section
-            Paragraph paragraph = section.AddParagraph();
-
-            //添加指定大小的文本框到段落
-            TextBox textbox = paragraph.AppendTextBox(300, 100);
-
-            //添加文本到文本，设置文本格式
-            Paragraph textboxParagraph = textbox.Body.AddParagraph();
-            TextRange textboxRange = textboxParagraph.AppendText("Sample Report 1");
-            textboxRange.CharacterFormat.FontName = "Arial";
-
-            //插入表格到文本框
-            Table table = textbox.Body.AddTable(true);
-            //指定表格行数、列数
-            table.ResetCells(4, 4);
-            //实例化数组内容
-            string[,] data = new string[,]  
-            {  
-               {"Name","Age","Gender","ID" },  
-               {"John","28","Male","0023" },  
-               {"Steve","30","Male","0024" },  
-               {"Lucy","26","female","0025" }  
-            };
-
-            //将数组内容添加到表格 
-            for (int i = 0; i < 4; i++)
+            if (dlg.ShowDialog() == DialogResult.OK)
             {
-                for (int j = 0; j < 4; j++)
-                {
-                    TextRange tableRange = table[i, j].AddParagraph().AppendText(data[i, j]);
-                    tableRange.CharacterFormat.FontName = "Arial";
-                }
+                richTextBoxTable r1 = new richTextBoxTable();
+                r1.richTextBox = richTextBox1;
+                r1.cellWidth = (int)dlg.numericUpDownCellWidth.Value;
+                r1.InsertTable((int)dlg.numericUpDownColumn.Value, (int)dlg.numericUpDownRow.Value, dlg.radioButtonAutoSzie.Checked);
+
+                /*  Document document = new Document();
+
+                  //添加section到文档
+                  Section section = document.AddSection();
+                  //添加段落section
+                  Paragraph paragraph = section.AddParagraph();
+
+                  //添加指定大小的文本框到段落
+                  TextBox textbox = paragraph.AppendTextBox(300, 100);
+
+                  //添加文本到文本，设置文本格式
+                  Paragraph textboxParagraph = textbox.Body.AddParagraph();
+                  TextRange textboxRange = textboxParagraph.AppendText("Sample Report 1");
+                  textboxRange.CharacterFormat.FontName = "Arial";
+
+                  //插入表格到文本框
+                  Table table = textbox.Body.AddTable(true);
+                  //指定表格行数、列数
+                  table.ResetCells(4, 4);
+                  //实例化数组内容
+                  string[,] data = new string[,]  
+                  {  
+                     {"Name","Age","Gender","ID" },  
+                     {"John","28","Male","0023" },  
+                     {"Steve","30","Male","0024" },  
+                     {"Lucy","26","female","0025" }  
+                  };
+
+                  //将数组内容添加到表格 
+                  for (int i = 0; i < 4; i++)
+                  {
+                      for (int j = 0; j < 4; j++)
+                      {
+                          TextRange tableRange = table[i, j].AddParagraph().AppendText(data[i, j]);
+                          tableRange.CharacterFormat.FontName = "Arial";
+                      }
+                  }
+
+                  //应用表格样式
+                  table.ApplyStyle(DefaultTableStyle.MediumGrid3Accent1);
+
+                  //保存并打开文档
+                  document.SaveToFile("Output.docx", FileFormat.Docx2013);
+                  System.Diagnostics.Process.Start("Output.docx");*/
+
             }
-
-            //应用表格样式
-            table.ApplyStyle(DefaultTableStyle.MediumGrid3Accent1);
-
-            //保存并打开文档
-            document.SaveToFile("Output.docx", FileFormat.Docx2013);
-            System.Diagnostics.Process.Start("Output.docx");*/
-        
         }
 
 
@@ -832,6 +865,12 @@ namespace 文档编辑器01
             
             this.richTextBox1.Controls.Add(pictureBox1);
             
+        }
+        private void AddDateControl()
+        {
+            DataGridView dataGridView1 = new DataGridView();
+            string Dname = dataGridView1.Name;
+            this.richTextBox1.Controls.Add(dataGridView1);
         }
 
         private void 添加图片ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -972,6 +1011,139 @@ namespace 文档编辑器01
 
         }
 
+        private void 新建表格ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AddDateControl();
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            this.richTextBox1.SelectionAlignment = HorizontalAlignment.Left;
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            this.richTextBox1.SelectionAlignment = HorizontalAlignment.Center; 
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            this.richTextBox1.SelectionAlignment = HorizontalAlignment.Right;
+        }
+
+         /// <summary>
+        ///对字符串进行加密
+        /// </summary>
+        /// <param name="input">待加密的文章</param>
+        /// <returns></returns>
+        private string GetMD5WithString(string input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+            MD5 md5Hash = MD5.Create();
+            byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+            StringBuilder sBuilder = new StringBuilder();
+            for (int i = 0; i < data.Length; i++)
+            {
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+            return sBuilder.ToString();
+        }
+        /// <summary>
+        /// 翻译结果提取
+        /// </summary>
+        /// <param name="q">待翻译字符</param>
+        /// <param name="from">源语言</param>
+        /// <param name="to">待翻译语言</param>
+        /// <returns></returns>
+        private  TranslationResult GetTranslationFromBaiduFanyi(string q, Language from, Language to)
+        {
+            const string appid = "20210807000909515";
+            const string password = "6B8bqiBjvWtAZdw8ytyD";
+            string jsonResult = String.Empty;
+            string languageFrom = from.ToString().ToLower();
+            string languageTo = to.ToString().ToLower();
+            string randomNum = System.DateTime.Now.Millisecond.ToString();
+            string md5Sign = GetMD5WithString(appid+q+randomNum+password);
+            string url = String.Format("http://api.fanyi.baidu.com/api/trans/vip/translate?q={0}&from={1}&to={2}&appid={3}&salt={4}&sign={5}",
+                HttpUtility.UrlEncode(q,Encoding.UTF8),
+                languageFrom,
+                languageTo,
+                appid,
+                randomNum,
+                md5Sign
+            );
+            WebClient wc = new WebClient();
+            try
+            {
+                jsonResult = wc.DownloadString(url);
+            }
+            catch
+            {
+                jsonResult = string.Empty;
+            }
+            JavaScriptSerializer jss = new JavaScriptSerializer();
+            TranslationResult result = jss.Deserialize<TranslationResult>(jsonResult);
+            return result;
+        }
+        public string translation(string source)
+        {
+            TranslationResult result = GetTranslationFromBaiduFanyi(source,Language.zh,Language.en);
+            if (result.Error_code == null)
+            {
+                return result.Trans_result[0].Dst;
+            }
+             else
+             {
+                 return "翻译出错,错误码:" + result.Error_code + ",错误信息:" + result.Error_msg;
+             }
+        }
+
+       
+
+        public void 翻译ToolStripMenuItem1_Click_1(object sender, EventArgs e)
+        {
+            Form2 form2 = new Form2(this);
+            form2.Show();
+            
+        }
+
+       
+
+        private void richTextBox1_TextChanged_2(object sender, EventArgs e)
+        {
+            if (Count() % 80 == 0)
+               this.WrapLine();
+
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void 语音播放ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           // SpVoice S = new SpVoice();
+            //S.Voice = S.GetVoices().Item(0);
+            SpeechSynthesizer s = new SpeechSynthesizer();
+            s.Speak(this.richTextBox1.Text);
+        }
+
+        SpeechSynthesizer s = new SpeechSynthesizer();
+
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+            s.Speak(this.richTextBox1.Text);
+            s.Dispose();
+        }
+
+       
+
        
     }
+       
+    
 }

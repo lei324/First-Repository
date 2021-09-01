@@ -120,7 +120,7 @@ namespace 文档编辑器01
                 richTextBox1.Focus();
                 FindPosition += FindString.Length;
             }
-            //MessageBox.Show(FindString + "共计" + count + "个");
+            
         }
         /// <summary>
         ///替换字符串
@@ -136,7 +136,7 @@ namespace 文档编辑器01
         /// </summary>
         public void WrapLine()
         {
-           // if(Count()%8==0)
+           if(Count()%8==0)
            // if (Count() % 80 == 0)
             {
                 this.richTextBox1.WordWrap = !(this.richTextBox1.WordWrap);
@@ -214,6 +214,12 @@ namespace 文档编辑器01
             撤消UToolStripMenuItem.Enabled = true;
             重复RToolStripMenuItem.Enabled = true;
 
+        }
+        private void richTextBox1_Click_1(object sender, EventArgs e)
+        {
+            int ln = richTextBox1.GetLineFromCharIndex(richTextBox1.SelectionStart);
+            int col = richTextBox1.SelectionStart - richTextBox1.GetFirstCharIndexFromLine(ln);
+            this.toolStripStatusLabel1.Text = "第" + (ln + 1) + "行" + ",第" + col + "列";
         }
 
         private void richTextBox1_Click(object sender, EventArgs e)
@@ -321,7 +327,14 @@ namespace 文档编辑器01
                 return;
             richTextBox1.Text = "";//清空面板
             s_FileName = "";//清空文件名
+            T();
             
+            
+        }
+        private void T()
+        {
+            this.pictureBox1.Image = null;
+            this.pictureBox1.Visible = false;
         }
         /// <summary>
         /// 打开已有的文件
@@ -330,22 +343,27 @@ namespace 文档编辑器01
         /// <param name="e"></param>
         private void 打开OToolStripMenuItem_Click(object sender, EventArgs e)
         {
+           
             if (!IfSaveOldFile())
                 return;
             OpenFileDialog saveFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Filter = "文本文档(*.txt)|*.txt|所有文件(*.*)|*.*|docx文档(*.docx)|*.docx|RTF文件|*.rtf";
+            openFileDialog1.Filter = "文本文档(*.txt)|*.txt|所有文件(*.*)|*.*|docx文档(*.docx)|*.docx|富文本文件|*.rtf";
             openFileDialog1.FilterIndex = 1;
+            s_FileName = openFileDialog1.FileName;
+           
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                try
-                {
-                    s_FileName = openFileDialog1.FileName;
-                    richTextBox1.LoadFile(openFileDialog1.FileName, RichTextBoxStreamType.PlainText);
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Oh，您的打开不成功！");
-                }
+               
+                       /* s_FileName = openFileDialog1.FileName;
+                        richTextBox1.LoadFile(openFileDialog1.FileName, RichTextBoxStreamType.RichText);
+                        bSave = true;*/
+                       
+                       s_FileName = openFileDialog1.FileName;
+                        richTextBox1.LoadFile(openFileDialog1.FileName, RichTextBoxStreamType.PlainText);
+                        bSave = true;
+                        T();
+                
+                
             }
             
           /*  openFileDialog1.Filter = "文本文件|*.txt;*.html;*.docx;*.doc;*.rtf|所有文件|*.*"; //文件打开的过滤器
@@ -431,8 +449,8 @@ namespace 文档编辑器01
         private void 另存为AToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            openFileDialog1.Filter = "文本文档(*.txt)|*.txt|所有文件(*.*)|*.*|docx文档(*.docx)|*.docx";
-            openFileDialog1.FilterIndex = 1;
+            saveFileDialog1.Filter = "文本文档(*.txt)|*.txt|所有文件(*.*)|*.*|docx文档(*.docx)|*.docx";
+            saveFileDialog1.FilterIndex = 1;
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 s_FileName = saveFileDialog1.FileName;
@@ -611,6 +629,7 @@ namespace 文档编辑器01
                 return;
             richTextBox1.Text = "";//清空面板
             s_FileName = "";//清空文件名
+            T();
         }
 
         private void OpenToolStripButton_Click(object sender, EventArgs e)
@@ -876,18 +895,19 @@ namespace 文档编辑器01
         private void 添加图片ToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-           
             OpenFileDialog OpenFileDialog = new OpenFileDialog();
             OpenFileDialog.Filter = "jpg文件(*.jpg)|*.jpg|bmp文件(*.bmp)|*.bmp|png文件(*.png)|*.png";
             if (OpenFileDialog.ShowDialog() == DialogResult.OK)
             {
+                this.pictureBox1.Visible = true;
                 this.pictureBox1.Image = System.Drawing.Image.FromFile(OpenFileDialog.FileName);
                 str = OpenFileDialog.FileName;
-                
+                this.pictureBox1.Show();
+                 
             }
         }
 
-       /* private void 图片ToolStripMenuItem_Click(object sender, EventArgs e)
+      /*  private void 图片ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             PictureBox pb = new PictureBox();
             // this.richTextBox1.Controls.Add(pb);
@@ -1107,6 +1127,7 @@ namespace 文档编辑器01
         {
             Form2 form2 = new Form2(this);
             form2.Show();
+            form2.翻译ToolStripMenuItem_Click(sender,e);
             
         }
 
@@ -1116,7 +1137,7 @@ namespace 文档编辑器01
         {
             if (Count() % 80 == 0)
                this.WrapLine();
-
+            bSave = true;
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
@@ -1136,13 +1157,24 @@ namespace 文档编辑器01
 
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            s.Speak(this.richTextBox1.Text);
-            s.Dispose();
+            s.SpeakAsync(this.richTextBox1.Text);
         }
 
-       
+        private void 打印xmlMToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form3 form3 = new Form3();
+            form3.Show();
+        }
 
-       
+        private void 首行缩进ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.richTextBox1.SelectionIndent = 20;
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            s.Pause();
+        }       
     }
        
     

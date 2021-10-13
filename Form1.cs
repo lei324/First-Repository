@@ -18,7 +18,7 @@ using System.Web;
 using System.Net;
 using System.Web.Script.Serialization;
 using System.Speech.Synthesis;
-using SpeechLib;
+//using SpeechLib;
 using richTextBoxTableClass;
 using System.IniFiles;
 
